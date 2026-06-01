@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-multipart
+bandit
+pbr
+motor
+aiofiles
+jinja2
+schedule

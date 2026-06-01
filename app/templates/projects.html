@@ -1,0 +1,245 @@
+{% extends "sections/base.html" %}
+
+{% block title %}Projects{% endblock %}
+{% block page_name %}Projects{% endblock %}
+{% block page_title %}Projects{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Summary Cards -->
+  <div class="row">
+    <div class="col-xl-4 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Repositories</p>
+              <h4 class="mb-0" id="totalRepositories">0</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-success shadow-success shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">folder</i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-4 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Total Scans</p>
+              <h4 class="mb-0" id="totalScans">0</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-primary shadow-primary shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">security</i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-4 col-sm-6">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Security Issues</p>
+              <h4 class="mb-0" id="totalIssues">0</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-danger shadow-danger shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">warning</i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Repositories -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0 p-3">
+          <div class="row">
+            <div class="col-6 d-flex align-items-center">
+              <h6 class="mb-0">Repositories</h6>
+            </div>
+            <div class="col-6 text-end">
+              <a class="btn bg-gradient-primary btn-sm mb-0" href="/scan">
+                <i class="material-symbols-rounded text-sm">add</i>&nbsp;&nbsp;Add Repository
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-3">
+          <div class="row" id="repositoryCards">
+            <!-- Repository cards populated here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- All Scans -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card mb-4">
+        <div class="card-header pb-0 p-3">
+          <h6 class="mb-0">All Scans</h6>
+        </div>
+        <div class="card-body px-0 pt-0 pb-2">
+          <div class="table-responsive p-0">
+            <table class="table align-items-center mb-0">
+              <thead>
+                <tr>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-4">Scan</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Date</th>
+                  <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Issues</th>
+                  <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Severity</th>
+                  <th class="text-secondary opacity-7"></th>
+                </tr>
+              </thead>
+              <tbody id="scansTable">
+                <!-- Scan rows populated here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  loadProjects();
+});
+
+async function loadProjects() {
+  try {
+    const [scansResponse, reposResponse] = await Promise.all([
+      fetch('/api/scan/list'),
+      fetch('/api/repositories')
+    ]);
+    const scansData = await scansResponse.json();
+    const reposData = await reposResponse.json();
+
+    const scans = scansData.scans || [];
+    const repos = reposData.repositories || [];
+
+    document.getElementById('totalRepositories').textContent = repos.length;
+    document.getElementById('totalScans').textContent = scans.length;
+    document.getElementById('totalIssues').textContent =
+      scans.reduce((sum, s) => sum + (s.total_issues || 0), 0);
+
+    renderRepositories(repos);
+    renderScans(scans);
+  } catch (error) {
+    console.error('Failed to load projects:', error);
+  }
+}
+
+function renderRepositories(repos) {
+  const container = document.getElementById('repositoryCards');
+  container.innerHTML = '';
+
+  if (repos.length === 0) {
+    container.innerHTML =
+      '<div class="col-12 text-center text-muted py-4">No repositories yet. ' +
+      '<a href="/scan">Add one</a> to get started.</div>';
+    return;
+  }
+
+  repos.forEach(repo => {
+    const col = document.createElement('div');
+    col.className = 'col-lg-4 col-md-6 mb-4';
+    const schedule = repo.scan_schedule
+      ? `<span class="badge badge-sm bg-gradient-success">${escapeHtml(repo.scan_schedule)}</span>`
+      : '<span class="badge badge-sm bg-gradient-secondary">Manual</span>';
+    const lastScan = repo.last_scan
+      ? new Date(repo.last_scan).toLocaleString()
+      : 'Never';
+
+    col.innerHTML = `
+      <div class="card h-100">
+        <div class="card-body p-3">
+          <div class="d-flex align-items-center mb-2">
+            <div class="icon icon-shape icon-sm bg-gradient-dark shadow text-center border-radius-md me-2">
+              <i class="material-symbols-rounded text-white opacity-10" style="font-size:18px;">folder</i>
+            </div>
+            <h6 class="mb-0 text-truncate">${escapeHtml(repo.name)}</h6>
+          </div>
+          <p class="text-xs text-secondary mb-2 text-truncate">${escapeHtml(repo.git_url || 'No Git URL')}</p>
+          <p class="text-xs mb-1"><strong>Branch:</strong> ${escapeHtml(repo.branch || 'main')}</p>
+          <p class="text-xs mb-2"><strong>Last scan:</strong> ${lastScan}</p>
+          <div class="d-flex justify-content-between align-items-center">
+            ${schedule}
+            <button class="btn btn-sm btn-outline-primary mb-0" onclick="scanRepository('${repo.id}')">Scan Now</button>
+          </div>
+        </div>
+      </div>
+    `;
+    container.appendChild(col);
+  });
+}
+
+function renderScans(scans) {
+  const tbody = document.getElementById('scansTable');
+  tbody.innerHTML = '';
+
+  if (scans.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted p-4">No scans yet</td></tr>';
+    return;
+  }
+
+  scans.forEach(scan => {
+    const row = document.createElement('tr');
+    const date = scan.generated_at ? new Date(scan.generated_at).toLocaleString() : '—';
+    row.innerHTML = `
+      <td class="ps-4">
+        <h6 class="mb-0 text-sm">${escapeHtml(String(scan.scan_id).substring(0, 18))}…</h6>
+      </td>
+      <td>
+        <p class="text-xs font-weight-bold mb-0">${date}</p>
+      </td>
+      <td class="align-middle text-center text-sm">
+        <span class="text-xs font-weight-bold">${scan.total_issues || 0}</span>
+      </td>
+      <td class="align-middle text-center">
+        ${getSeverityBadge(scan.metrics || {})}
+      </td>
+      <td class="align-middle text-end pe-4">
+        <a href="/results/${encodeURIComponent(scan.scan_id)}" class="btn btn-sm btn-info mb-0">View</a>
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+function getSeverityBadge(metrics) {
+  if ((metrics['SEVERITY.HIGH'] || 0) > 0) {
+    return '<span class="badge badge-sm bg-gradient-danger">High</span>';
+  } else if ((metrics['SEVERITY.MEDIUM'] || 0) > 0) {
+    return '<span class="badge badge-sm bg-gradient-warning">Medium</span>';
+  } else if ((metrics['SEVERITY.LOW'] || 0) > 0) {
+    return '<span class="badge badge-sm bg-gradient-info">Low</span>';
+  }
+  return '<span class="badge badge-sm bg-gradient-success">Clean</span>';
+}
+
+async function scanRepository(repoId) {
+  try {
+    const response = await fetch(`/api/repositories/${repoId}/scan`, { method: 'POST' });
+    if (!response.ok) throw new Error('Failed to start scan');
+    alert('Scan started successfully!');
+  } catch (error) {
+    alert('Error: ' + error.message);
+  }
+}
+
+function escapeHtml(text) {
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+  return String(text).replace(/[&<>"']/g, m => map[m]);
+}
+</script>
+{% endblock %}

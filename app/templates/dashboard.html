@@ -1,0 +1,400 @@
+{% extends "sections/base.html" %}
+
+{% block title %}Security Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Security Overview Cards -->
+  <div class="row">
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Total Scans</p>
+              <h4 class="mb-0" id="totalScans">0</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-primary shadow-primary shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">security</i>
+            </div>
+          </div>
+        </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm"><span class="text-info font-weight-bolder" id="scansChange">+0% </span>from last week</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Security Issues</p>
+              <h4 class="mb-0" id="totalIssues">0</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-danger shadow-danger shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">warning</i>
+            </div>
+          </div>
+        </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm"><span class="text-danger font-weight-bolder" id="issuesChange">+0% </span>from last week</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">High Severity</p>
+              <h4 class="mb-0" id="highSeverityIssues">0</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-warning shadow-warning shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">priority_high</i>
+            </div>
+          </div>
+        </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm"><span class="text-warning font-weight-bolder" id="highSeverityChange">+0% </span>from last week</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Repositories</p>
+              <h4 class="mb-0" id="totalRepositories">0</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-success shadow-success shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">folder</i>
+            </div>
+          </div>
+        </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm"><span class="text-success font-weight-bolder" id="reposChange">+0% </span>from last week</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Section -->
+  <div class="row mt-4">
+    <div class="col-lg-8 col-md-6 mt-4 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="mb-0">Security Issues by Severity</h6>
+          <p class="text-sm">Distribution of security issues across severity levels</p>
+          <div class="pe-2">
+            <div class="chart">
+              <canvas id="severity-chart" class="chart-canvas" height="170"></canvas>
+            </div>
+          </div>
+          <hr class="dark horizontal">
+          <div class="d-flex">
+            <i class="material-symbols-rounded text-sm my-auto me-1">schedule</i>
+            <p class="mb-0 text-sm" id="lastScanTime">No scans yet</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4 mt-4 mb-3">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="mb-0">Scan Trends</h6>
+          <p class="text-sm">Recent security scanning activity</p>
+          <div class="pe-2">
+            <div class="chart">
+              <canvas id="trend-chart" class="chart-canvas" height="170"></canvas>
+            </div>
+          </div>
+          <hr class="dark horizontal">
+          <div class="d-flex">
+            <i class="material-symbols-rounded text-sm my-auto me-1">trending_up</i>
+            <p class="mb-0 text-sm" id="trendInfo">Tracking scan patterns</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity Section -->
+  <div class="row mb-4">
+    <div class="col-lg-8 col-md-6 mb-md-0 mb-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <div class="row">
+            <div class="col-lg-6 col-7">
+              <h6>Recent Security Scans</h6>
+              <p class="text-sm mb-0">
+                <i class="fa fa-shield-alt text-success" aria-hidden="true"></i>
+                <span class="font-weight-bold ms-1" id="completedScans">0 completed</span> this week
+              </p>
+            </div>
+            <div class="col-lg-6 col-5 my-auto text-end">
+              <a href="/scan" class="btn btn-sm btn-primary">
+                <i class="material-symbols-rounded text-sm me-1">add</i>New Scan
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="card-body px-0 pb-2">
+          <div class="table-responsive">
+            <table class="table align-items-center mb-0">
+              <thead>
+                <tr>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Scan Target</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Date</th>
+                  <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Issues</th>
+                  <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
+                </tr>
+              </thead>
+              <tbody id="recentScansTable">
+                <!-- Recent scans will be populated here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+      <div class="card h-100">
+        <div class="card-header pb-0">
+          <h6>Security Alerts</h6>
+          <p class="text-sm">
+            <i class="fa fa-shield-alt text-warning" aria-hidden="true"></i>
+            <span class="font-weight-bold" id="alertsCount">0</span> active alerts
+          </p>
+        </div>
+        <div class="card-body p-3">
+          <div class="timeline timeline-one-side" id="alertsTimeline">
+            <!-- Security alerts will be populated here -->
+            <div class="text-center p-4">
+              <i class="material-symbols-rounded text-muted" style="font-size: 48px;">security</i>
+              <p class="text-muted mt-2">No recent security alerts</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Load dashboard data
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardData();
+    setInterval(loadDashboardData, 30000); // Refresh every 30 seconds
+});
+
+async function loadDashboardData() {
+    try {
+        // Load scan statistics
+        const [scansResponse, reposResponse] = await Promise.all([
+            fetch('/api/scan/list'),
+            fetch('/api/repositories')
+        ]);
+        
+        const scansData = await scansResponse.json();
+        const reposData = await reposResponse.json();
+        
+        updateMetrics(scansData.scans, reposData.repositories);
+        updateRecentScansTable(scansData.scans.slice(0, 5));
+        updateCharts(scansData.scans);
+        
+    } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+    }
+}
+
+function updateMetrics(scans, repos) {
+    document.getElementById('totalScans').textContent = scans.length;
+    document.getElementById('totalRepositories').textContent = repos.length;
+    
+    const totalIssues = scans.reduce((sum, scan) => sum + (scan.total_issues || 0), 0);
+    document.getElementById('totalIssues').textContent = totalIssues;
+    
+    const highSeverityIssues = scans.reduce((sum, scan) => {
+        const metrics = scan.metrics || {};
+        return sum + (metrics['SEVERITY.HIGH'] || 0);
+    }, 0);
+    document.getElementById('highSeverityIssues').textContent = highSeverityIssues;
+    
+    // Update completed scans this week
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    
+    const recentScans = scans.filter(scan => {
+        return new Date(scan.generated_at) > oneWeekAgo;
+    });
+    
+    document.getElementById('completedScans').textContent = recentScans.length;
+}
+
+function updateRecentScansTable(scans) {
+    const tbody = document.getElementById('recentScansTable');
+    tbody.innerHTML = '';
+    
+    if (scans.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4">No recent scans</td></tr>';
+        return;
+    }
+    
+    scans.forEach(scan => {
+        const row = document.createElement('tr');
+        const severity = getSeverityBadge(scan.metrics || {}, scan.scan_id);
+
+        // Clicking a scan row opens that scan's results page.
+        row.style.cursor = 'pointer';
+        row.addEventListener('click', () => {
+            window.location.href = `/results/${scan.scan_id}`;
+        });
+
+        row.innerHTML = `
+            <td>
+                <div class="d-flex px-2 py-1">
+                    <div class="d-flex flex-column justify-content-center">
+                        <h6 class="mb-0 text-sm">${scan.scan_id.substring(0, 12)}...</h6>
+                        <p class="text-xs text-secondary mb-0">Uploaded scan</p>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <p class="text-xs font-weight-bold mb-0">${new Date(scan.generated_at).toLocaleDateString()}</p>
+                <p class="text-xs text-secondary mb-0">${new Date(scan.generated_at).toLocaleTimeString()}</p>
+            </td>
+            <td class="align-middle text-center text-sm">
+                <span class="text-xs font-weight-bold">${scan.total_issues || 0}</span>
+            </td>
+            <td class="align-middle text-center">
+                ${severity}
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function getSeverityBadge(metrics, scanId) {
+    const high = metrics['SEVERITY.HIGH'] || 0;
+    const medium = metrics['SEVERITY.MEDIUM'] || 0;
+    const low = metrics['SEVERITY.LOW'] || 0;
+
+    let level, color, label;
+    if (high > 0) {
+        [level, color, label] = ['HIGH', 'danger', 'High Risk'];
+    } else if (medium > 0) {
+        [level, color, label] = ['MEDIUM', 'warning', 'Medium Risk'];
+    } else if (low > 0) {
+        [level, color, label] = ['LOW', 'info', 'Low Risk'];
+    } else {
+        return '<span class="badge badge-sm bg-gradient-success">Clean</span>';
+    }
+
+    // Link straight to the results page pre-filtered to this severity.
+    // stopPropagation keeps it from also triggering the row's click handler.
+    return `<a href="/results/${scanId}?severity=${level}" onclick="event.stopPropagation()"
+              class="badge badge-sm bg-gradient-${color} text-white text-decoration-none">${label}</a>`;
+}
+
+function updateCharts(scans) {
+    updateSeverityChart(scans);
+    updateTrendChart(scans);
+}
+
+function updateSeverityChart(scans) {
+    const ctx = document.getElementById('severity-chart');
+    if (!ctx) return;
+    
+    // Aggregate severity data
+    const severityData = scans.reduce((acc, scan) => {
+        const metrics = scan.metrics || {};
+        acc.high += metrics['SEVERITY.HIGH'] || 0;
+        acc.medium += metrics['SEVERITY.MEDIUM'] || 0;
+        acc.low += metrics['SEVERITY.LOW'] || 0;
+        return acc;
+    }, { high: 0, medium: 0, low: 0 });
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['High', 'Medium', 'Low'],
+            datasets: [{
+                data: [severityData.high, severityData.medium, severityData.low],
+                backgroundColor: ['#f44336', '#ff9800', '#2196f3'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+function updateTrendChart(scans) {
+    const ctx = document.getElementById('trend-chart');
+    if (!ctx) return;
+    
+    // Get last 7 days of scan data
+    const last7Days = [];
+    const scanCounts = [];
+    
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toDateString();
+        
+        const dayScans = scans.filter(scan => {
+            return new Date(scan.generated_at).toDateString() === dateStr;
+        }).length;
+        
+        last7Days.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
+        scanCounts.push(dayScans);
+    }
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: last7Days,
+            datasets: [{
+                label: 'Scans',
+                data: scanCounts,
+                borderColor: '#4caf50',
+                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}
