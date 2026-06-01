@@ -1,0 +1,11 @@
+node_modules/
+__pycache__
+venv/
+
+# Scan working data (uploaded projects, cloned repos, results)
+uploads/
+scan_results/
+repositories/
+
+# MongoDB data (host bind mount)
+mongo_data/

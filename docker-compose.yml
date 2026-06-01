@@ -1,0 +1,39 @@
+services:
+  bandit-ui:
+    build: .
+    ports:
+      - "8082:8000"
+    volumes:
+      - ./app:/app
+      - ./uploads:/app/uploads
+      - ./scan_results:/app/scan_results
+    environment:
+      - PYTHONPATH=/app
+      - MONGO_URL=mongodb://mongo:27017
+      - MONGO_DB=bandit_ui
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  mongo:
+    # floats to the latest 8.x (>= 8.2.2); pin a specific tag here if needed
+    image: mongo:8
+    ports:
+      - "27017:27017"
+    volumes:
+      # gitignored host bind mount so scan data persists across restarts
+      - ./mongo_data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
